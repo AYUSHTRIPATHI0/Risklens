@@ -127,6 +127,7 @@ export default function Home() {
 
   const riskScoreChange = React.useMemo(() => {
     if (!appData) return 0;
+    if (appData.heatmapData.some(d => d.history.length < 2)) return 0;
     const yesterdayScores = appData.heatmapData.map(
         (d) => d.history[d.history.length - 2].score
       );
@@ -136,6 +137,31 @@ export default function Home() {
     return averageRisk - yesterdayAverage;
   }, [appData, averageRisk]);
   
+
+  const plainEnglishInsightsData = React.useMemo(() => {
+    const defaultData = {
+        riskScoreChange: 0,
+        volatilityImpact: 0,
+        macroeconomicImpact: 0,
+        sentimentImpact: 0,
+        liquidityImpact: 0,
+    };
+
+    if (!appData) {
+        return defaultData;
+    }
+
+    const driverImpacts = appData.driverBreakdown.reduce((acc, curr) => {
+        const key = (curr.name.toLowerCase() + "Impact") as keyof typeof defaultData;
+        acc[key] = curr.value;
+        return acc;
+    }, {} as any);
+
+    return {
+        riskScoreChange: riskScoreChange,
+        ...driverImpacts,
+    };
+  }, [appData, riskScoreChange]);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background font-body">
@@ -164,10 +190,7 @@ export default function Home() {
                 </CardContent>
               </Card>
               <PlainEnglishInsights
-                riskData={{
-                  riskScoreChange,
-                  ...(appData.driverBreakdown.reduce((acc, curr) => ({...acc, [curr.name.toLowerCase() + "Impact"]: curr.value}), {}) as any)
-                }}
+                riskData={plainEnglishInsightsData}
               />
               <RiskHeatmap data={appData.heatmapData} />
             </div>
