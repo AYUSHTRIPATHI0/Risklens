@@ -23,7 +23,7 @@ export interface NarrativeCard {
   id: string;
   headline: string;
   sentiment: number;
-  factor: "Liquidity" | "Market" | "Geopolitical" | "Policy";
+  factor: "Liquidity" | "Market" | "Geopolitical" | "Policy" | "Technology" | "Finance" | "Economic";
 }
 
 export interface AppData {
@@ -46,6 +46,7 @@ function generateHistory(baseScore: number): { date: string; score: number }[] {
     return history;
 }
 
+// This is now only used as a fallback if the API fails for a specific stock.
 export const initialData: AppData = {
   heatmapData: [
     { id: "alpha", name: "Alpha Corp", sector: "Technology", history: generateHistory(68) },
@@ -61,15 +62,7 @@ export const initialData: AppData = {
     { name: "Sentiment", value: 20, fill: "hsl(var(--chart-3))" },
     { name: "Liquidity", value: 15, fill: "hsl(var(--chart-4))" },
   ],
-  smartAlerts: [
-    { id: "alert1", company: "Gamma Financials", change: 12, trigger: "Volatility", timestamp: "2m ago" },
-    { id: "alert2", company: "Alpha Corp", change: -9, trigger: "Sentiment", timestamp: "1h ago" },
-    { id: "alert3", company: "Delta Energy", change: 8, trigger: "Macroeconomic", timestamp: "3h ago" },
-  ],
-  narrativeCards: [
-    { id: "narr1", headline: "RBI policy news hints at upcoming liquidity challenges.", factor: "Liquidity", sentiment: -0.65 },
-    { id: "narr2", headline: "Positive earnings forecast boosts market confidence.", factor: "Market", sentiment: 0.82 },
-    { id: "narr3", headline: "Global supply chain disruptions create policy uncertainty.", factor: "Policy", sentiment: -0.40 },
-    { id: "narr4", headline: "New trade agreement expected to stabilize international markets.", factor: "Geopolitical", sentiment: 0.75 },
-  ]
+  smartAlerts: [],
+  narrativeCards: []
 };
+
