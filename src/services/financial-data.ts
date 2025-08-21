@@ -127,8 +127,8 @@ async function getNewsData(): Promise<{narrativeCards: NarrativeCard[], sentimen
         return { narrativeCards: [], sentimentScore: 1.2 };
     }
 
-    const keywords = STOCKS_TO_TRACK.map(s => s.name.split(' ')[0]).join(' OR ');
-    const url = `https://newsapi.org/v2/everything?q=finance AND (${keywords})&sortBy=relevancy&language=en&apiKey=${NEWS_API_KEY}&pageSize=10`;
+    const keywords = 'finance OR stock OR market';
+    const url = `https://newsapi.org/v2/everything?q=${keywords}&sortBy=relevancy&language=en&apiKey=${NEWS_API_KEY}&pageSize=10`;
 
     try {
         const response = await fetch(url);
