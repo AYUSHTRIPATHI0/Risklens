@@ -262,7 +262,7 @@ export async function getFinancialData(): Promise<AppData> {
   const driverBreakdown: DriverBreakdownData[] = totalDriverValue > 0 ? [
       { name: "Volatility", value: Math.round((rawDrivers.volatility / totalDriverValue) * 100), fill: "hsl(var(--chart-1))" },
       { name: "Liquidity", value: Math.round((rawDrivers.liquidity / totalDriverValue) * 100), fill: "hsl(var(--chart-4))" },
-      { name: "Macroeconomic", value: Math.round((rawDrivers.macroeconomic / totalДalue) * 100), fill: "hsl(var(--chart-2))" },
+      { name: "Macroeconomic", value: Math.round((rawDrivers.macroeconomic / totalDriverValue) * 100), fill: "hsl(var(--chart-2))" },
       { name: "Sentiment", value: Math.round((rawDrivers.sentiment / totalDriverValue) * 100), fill: "hsl(var(--chart-3))" },
   ] : initialData.driverBreakdown;
 
