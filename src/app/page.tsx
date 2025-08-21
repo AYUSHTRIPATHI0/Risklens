@@ -198,7 +198,7 @@ export default function Home() {
 
             {/* Right Column */}
             <div className="lg:col-span-3 space-y-6">
-              <ScenarioExplorer onApplyShocks={() => {}} />
+              <ScenarioExplorer appData={appData} />
               <NarrativeCards cards={appData.narrativeCards} />
             </div>
           </div>

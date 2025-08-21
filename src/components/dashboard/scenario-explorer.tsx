@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from 'next/navigation'
 import {
   Card,
   CardContent,
@@ -12,12 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal } from "lucide-react";
+import { AppData } from "@/lib/mock-data";
 
 interface ScenarioExplorerProps {
-  onApplyShocks: (shocks: Record<string, number>) => void;
+  appData: AppData;
 }
 
-export function ScenarioExplorer({ onApplyShocks }: ScenarioExplorerProps) {
+export function ScenarioExplorer({ appData }: ScenarioExplorerProps) {
+  const router = useRouter();
   const [shocks, setShocks] = React.useState({
     interestRate: 0,
     fx: 0,
@@ -27,6 +30,25 @@ export function ScenarioExplorer({ onApplyShocks }: ScenarioExplorerProps) {
   const handleSliderChange = (name: keyof typeof shocks, value: number[]) => {
     setShocks((prev) => ({ ...prev, [name]: value[0] }));
   };
+  
+  const handleApplyShocks = () => {
+    const params = new URLSearchParams();
+    params.set("interestRate", shocks.interestRate.toString());
+    params.set("fx", shocks.fx.toString());
+    params.set("commodityPrice", shocks.commodityPrice.toString());
+    
+    // Pass the whole dataset to the results page to be re-calculated
+    // In a real app, you might just pass IDs and re-fetch, but this is fine for this demo.
+    try {
+      params.set("appData", JSON.stringify(appData));
+    } catch(e) {
+      console.error("Could not stringify app data", e);
+      // handle error, maybe show a toast
+      return;
+    }
+    
+    router.push(`/scenario-results?${params.toString()}`);
+  }
 
   const scenarios = [
     {
@@ -82,7 +104,7 @@ export function ScenarioExplorer({ onApplyShocks }: ScenarioExplorerProps) {
         ))}
         <Button
           className="w-full transition-all duration-200 hover:shadow-lg hover:shadow-accent/20"
-          onClick={() => onApplyShocks(shocks)}
+          onClick={handleApplyShocks}
         >
           Apply Shocks
         </Button>
