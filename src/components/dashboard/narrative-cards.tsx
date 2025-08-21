@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Info, TrendingUp, TrendingDown } from "lucide-react";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NarrativeCard } from "@/lib/mock-data";
 
@@ -64,16 +64,6 @@ export function NarrativeCards({ cards }: NarrativeCardsProps) {
               <div className="space-y-2">
                 <div className="flex justify-between items-start gap-2">
                     <p className="font-medium leading-snug">{card.headline}</p>
-                    <div className="flex items-center gap-1">
-                        {card.sentiment > 0 ? (
-                            <TrendingUp className="h-4 w-4 text-accent" />
-                        ) : (
-                            <TrendingDown className="h-4 w-4 text-destructive" />
-                        )}
-                        <span className={cn("font-bold text-sm", card.sentiment > 0 ? "text-accent" : "text-destructive")}>
-                            {Math.abs(card.sentiment).toFixed(2)}
-                        </span>
-                    </div>
                 </div>
                 <Badge variant="outline" className={cn("text-xs capitalize", factorColors[card.factor])}>{card.factor.replace(/_/g, " ")}</Badge>
               </div>
@@ -85,4 +75,3 @@ export function NarrativeCards({ cards }: NarrativeCardsProps) {
     </Card>
   );
 }
-

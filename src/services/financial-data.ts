@@ -16,7 +16,8 @@ const STOCKS_TO_TRACK = [
   { symbol: 'PG', name: 'Zeta Consumer', sector: 'Consumer Staples' },
 ];
 
-const API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
+const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY;
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
 
 // Debounce subsequent calls to avoid hitting API rate limits
 let lastApiCallTime = 0;
@@ -49,13 +50,13 @@ interface StockHistory extends HeatmapData {
 }
 
 async function getStockHistory(symbol: string, name: string, sector: string): Promise<StockHistory | null> {
-  if (!API_KEY || API_KEY === "YOUR_API_KEY") {
+  if (!ALPHA_VANTAGE_API_KEY || ALPHA_VANTAGE_API_KEY === "YOUR_API_KEY") {
     console.warn("Alpha Vantage API key not found. Using mock data for history.");
     const mockHistory = initialData.heatmapData.find(d => d.id === name.split(' ')[0].toLowerCase())?.history || [];
     return { id: symbol.toLowerCase(), name, sector, history: mockHistory, volumes: [], dailyChanges: [] };
   }
   
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}&outputsize=compact`;
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${ALPHA_VANTAGE_API_KEY}&outputsize=compact`;
   
   try {
     const response = await debouncedFetch(url);
@@ -120,75 +121,76 @@ async function getStockHistory(symbol: string, name: string, sector: string): Pr
   }
 }
 
-async function getNewsSentiment(): Promise<{narrativeCards: NarrativeCard[], sentimentScore: number}> {
-    if (!API_KEY || API_KEY === "YOUR_API_KEY") {
-        return { narrativeCards: [], sentimentScore: 1.2 }; // fallback
+async function getNewsData(): Promise<{narrativeCards: NarrativeCard[], sentimentScore: number}> {
+    if (!NEWS_API_KEY || NEWS_API_KEY === "YOUR_NEWS_API_KEY") {
+        console.warn("News API key not found. Skipping news fetch.");
+        return { narrativeCards: [], sentimentScore: 1.2 };
     }
 
-    const tickers = STOCKS_TO_TRACK.map(s => s.symbol).join(',');
-    const url = `https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers=${tickers}&apikey=${API_KEY}&limit=10`;
+    const keywords = STOCKS_TO_TRACK.map(s => s.name.split(' ')[0]).join(' OR ');
+    const url = `https://newsapi.org/v2/everything?q=finance AND (${keywords})&sortBy=relevancy&language=en&apiKey=${NEWS_API_KEY}&pageSize=10`;
 
     try {
-        const response = await debouncedFetch(url);
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch news data: ${response.statusText}`);
+        }
         const data = await response.json();
 
-        if (data['Error Message'] || !data.feed) {
-             console.error(`API error for news sentiment:`, data['Note'] || data['Error Message'] || 'Invalid data format');
-             return { narrativeCards: [], sentimentScore: 1.2 };
+        if (data.status !== 'ok') {
+            throw new Error(`News API error: ${data.message}`);
         }
 
-        const feed = data.feed as any[];
-        let totalScore = 0;
-
-        const topicToFactor: Record<string, NarrativeCard['factor']> = {
-            "ipo": "Market",
-            "mergers_and_acquisitions": "Market",
-            "financial_markets": "Market",
-            "economy_fiscal": "Policy",
-            "economy_monetary": "Policy",
-            "economy_macro": "Economic",
-            "energy_transportation": "Geopolitical",
-            "finance": "Finance",
-            "life_sciences": "Technology",
-            "manufacturing": "Technology",
-            "real_estate": "Market",
-            "retail_wholesale": "Market",
-            "technology": "Technology",
+        const factorKeywords: Record<string, NarrativeCard['factor']> = {
+            'interest rate': 'Policy',
+            'fed': 'Policy',
+            'government': 'Geopolitical',
+            'war': 'Geopolitical',
+            'cyber': 'Technology',
+            'stock': 'Market',
+            'market': 'Market',
+            'shares': 'Finance',
+            'profit': 'Finance',
+            'loss': 'Finance',
+            'economy': 'Economic',
         }
 
-        const narrativeCards: NarrativeCard[] = feed.map((item, index) => {
-            const tickerSentiment = item.ticker_sentiment.find((t: any) => STOCKS_TO_TRACK.some(s => s.symbol === t.ticker));
-            const sentimentScore = parseFloat(tickerSentiment?.relevance_score) * parseFloat(tickerSentiment?.sentiment_score) || 0;
-            totalScore += sentimentScore;
+        const narrativeCards: NarrativeCard[] = data.articles.map((article: any, index: number) => {
+            let factor: NarrativeCard['factor'] = 'Market'; // Default
+            const headlineLower = article.title.toLowerCase();
+            for(const keyword in factorKeywords) {
+                if (headlineLower.includes(keyword)) {
+                    factor = factorKeywords[keyword];
+                    break;
+                }
+            }
             
-            const mainTopic = item.topics[0]?.topic || "Market";
-            const factor = topicToFactor[mainTopic.toLowerCase()] || "Market";
-
             return {
-                id: `narr${index}`,
-                headline: item.title,
-                sentiment: sentimentScore,
-                factor: factor
+                id: `narr-${index}`,
+                headline: article.title,
+                sentiment: 0, // NewsAPI does not provide sentiment
+                factor: factor,
             };
         });
 
-        const sentimentScore = feed.length > 0 ? Math.abs(totalScore) * 5 : 1.2;
+        // Placeholder for sentiment calculation
+        const sentimentScore = 1.2;
 
         return { narrativeCards, sentimentScore };
 
     } catch (error) {
-        console.error("Error fetching news sentiment:", error);
+        console.error("Error fetching news from News API:", error);
         return { narrativeCards: [], sentimentScore: 1.2 };
     }
 }
 
 
 async function getMacroEconomicIndicator(): Promise<number> {
-    if (!API_KEY || API_KEY === "YOUR_API_KEY") {
+    if (!ALPHA_VANTAGE_API_KEY || ALPHA_VANTAGE_API_KEY === "YOUR_API_KEY") {
         return 1.5; // fallback
     }
 
-    const url = `https://www.alphavantage.co/query?function=FEDERAL_FUNDS_RATE&apikey=${API_KEY}`;
+    const url = `https://www.alphavantage.co/query?function=FEDERAL_FUNDS_RATE&apikey=${ALPHA_VANTAGE_API_KEY}`;
     
     try {
         const response = await debouncedFetch(url);
@@ -212,7 +214,7 @@ export async function getFinancialData(): Promise<AppData> {
 
   const [stockHistoriesResult, newsResult, macroResult] = await Promise.all([
     Promise.all(STOCKS_TO_TRACK.map(stock => getStockHistory(stock.symbol, stock.name, stock.sector))),
-    getNewsSentiment(),
+    getNewsData(),
     getMacroEconomicIndicator(),
   ]);
 
@@ -260,7 +262,7 @@ export async function getFinancialData(): Promise<AppData> {
   const driverBreakdown: DriverBreakdownData[] = totalDriverValue > 0 ? [
       { name: "Volatility", value: Math.round((rawDrivers.volatility / totalDriverValue) * 100), fill: "hsl(var(--chart-1))" },
       { name: "Liquidity", value: Math.round((rawDrivers.liquidity / totalDriverValue) * 100), fill: "hsl(var(--chart-4))" },
-      { name: "Macroeconomic", value: Math.round((rawDrivers.macroeconomic / totalDriverValue) * 100), fill: "hsl(var(--chart-2))" },
+      { name: "Macroeconomic", value: Math.round((rawDrivers.macroeconomic / totalДalue) * 100), fill: "hsl(var(--chart-2))" },
       { name: "Sentiment", value: Math.round((rawDrivers.sentiment / totalDriverValue) * 100), fill: "hsl(var(--chart-3))" },
   ] : initialData.driverBreakdown;
 
@@ -271,4 +273,3 @@ export async function getFinancialData(): Promise<AppData> {
       narrativeCards: newsResult.narrativeCards,
   };
 }
-
