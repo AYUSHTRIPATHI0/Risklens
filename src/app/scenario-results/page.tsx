@@ -1,4 +1,7 @@
 
+// This page displays scenario results based on query parameters and applies hypothetical shocks to financial data.
+// It is a client component because it uses hooks like useSearchParams and useRouter.
+
 "use client";
 
 import * as React from "react";
