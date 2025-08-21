@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -44,7 +45,7 @@ export function RiskIndexGauge({ value }: RiskIndexGaugeProps) {
   return (
     <div className="relative flex flex-col items-center justify-center gap-4">
       <div
-        className="relative h-48 w-48"
+        className="relative h-40 w-40 sm:h-48 sm:w-48"
         style={
           {
             "--value": value,
@@ -80,10 +81,10 @@ export function RiskIndexGauge({ value }: RiskIndexGaugeProps) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={cn("text-5xl font-bold tracking-tighter", getRiskColor(value))}>
+            <span className={cn("text-4xl sm:text-5xl font-bold tracking-tighter", getRiskColor(value))}>
                 {value}
             </span>
-            <p className="text-sm text-muted-foreground font-medium">OVERALL RISK INDEX</p>
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium text-center">OVERALL RISK INDEX</p>
         </div>
       </div>
       <div className="flex items-center gap-2 text-muted-foreground">

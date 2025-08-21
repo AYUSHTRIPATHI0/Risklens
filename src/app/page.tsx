@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -17,8 +18,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 function DashboardSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      <div className="lg:col-span-3 space-y-6">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
+      <div className="md:col-span-5 lg:col-span-3 space-y-6">
         <Card className="h-[400px]">
           <CardHeader>
             <Skeleton className="h-6 w-3/4" />
@@ -40,7 +41,7 @@ function DashboardSkeleton() {
           </CardContent>
         </Card>
       </div>
-      <div className="lg:col-span-6 space-y-6">
+      <div className="md:col-span-7 lg:col-span-6 space-y-6">
         <Card>
           <CardContent className="p-4 md:p-6">
             <Skeleton className="h-48 w-48 rounded-full mx-auto" />
@@ -67,7 +68,7 @@ function DashboardSkeleton() {
           </CardContent>
         </Card>
       </div>
-      <div className="lg:col-span-3 space-y-6">
+      <div className="md:col-span-12 lg:col-span-3 space-y-6">
         <Card className="h-[350px]">
            <CardHeader>
              <Skeleton className="h-6 w-1/2" />
@@ -172,19 +173,19 @@ export default function Home() {
           <h1 className="text-xl font-semibold text-foreground">RiskLens</h1>
         </div>
       </header>
-      <main className="flex-1 p-4 md:p-6">
+      <main className="flex-1 p-4 md:p-6 lg:p-8">
         {loading || !appData ? (
           <DashboardSkeleton />
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
             {/* Left Column */}
-            <div className="lg:col-span-3 space-y-6">
+            <div className="md:col-span-5 lg:col-span-3 space-y-6">
               <DriverBreakdown data={appData.driverBreakdown} />
               <SmartAlerts alerts={appData.smartAlerts} />
             </div>
 
             {/* Middle Column */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="md:col-span-7 lg:col-span-6 space-y-6">
               <Card>
                 <CardContent className="p-4 md:p-6">
                   <RiskIndexGauge value={averageRisk} />
@@ -197,9 +198,9 @@ export default function Home() {
             </div>
 
             {/* Right Column */}
-            <div className="lg:col-span-3 space-y-6">
-              <ScenarioExplorer appData={appData} />
-              <NarrativeCards cards={appData.narrativeCards} />
+            <div className="md:col-span-12 lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                <ScenarioExplorer appData={appData} />
+                <NarrativeCards cards={appData.narrativeCards} />
             </div>
           </div>
         )}

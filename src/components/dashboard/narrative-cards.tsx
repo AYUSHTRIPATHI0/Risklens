@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import {
   Card,
@@ -11,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NarrativeCard } from "@/lib/mock-data";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface NarrativeCardsProps {
   cards: NarrativeCard[];
@@ -27,27 +29,8 @@ const factorColors: Record<NarrativeCard['factor'], string> = {
 }
 
 export function NarrativeCards({ cards }: NarrativeCardsProps) {
-  if (!cards || cards.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5 text-accent" />
-            Narrative Evidence
-          </CardTitle>
-          <CardDescription>
-            Qualitative factors influencing risk.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">No recent news or narrative evidence available.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Info className="h-5 w-5 text-accent" />
@@ -57,20 +40,28 @@ export function NarrativeCards({ cards }: NarrativeCardsProps) {
           Qualitative factors influencing risk.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {cards.map((card, index) => (
-            <React.Fragment key={card.id}>
-              <div className="space-y-2">
-                <div className="flex justify-between items-start gap-2">
-                    <p className="font-medium leading-snug">{card.headline}</p>
-                </div>
-                <Badge variant="outline" className={cn("text-xs capitalize", factorColors[card.factor])}>{card.factor.replace(/_/g, " ")}</Badge>
-              </div>
-              {index < cards.length - 1 && <Separator className="my-4" />}
-            </React.Fragment>
-          ))}
-        </div>
+      <CardContent className="flex-1">
+        <ScrollArea className="h-[300px]">
+          {cards && cards.length > 0 ? (
+            <div className="space-y-4 pr-4">
+              {cards.map((card, index) => (
+                <React.Fragment key={card.id}>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                        <p className="font-medium leading-snug text-sm">{card.headline}</p>
+                    </div>
+                    <Badge variant="outline" className={cn("text-xs capitalize", factorColors[card.factor])}>{card.factor.replace(/_/g, " ")}</Badge>
+                  </div>
+                  {index < cards.length - 1 && <Separator className="my-4" />}
+                </React.Fragment>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground text-sm text-center">No recent news or narrative evidence available.</p>
+            </div>
+          )}
+        </ScrollArea>
       </CardContent>
     </Card>
   );

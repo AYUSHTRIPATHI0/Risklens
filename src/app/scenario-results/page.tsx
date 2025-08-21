@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -19,6 +20,10 @@ function ResultsSkeleton() {
       <div className="lg:col-span-3" />
       <div className="lg:col-span-6 space-y-6">
         <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-3/4 mx-auto" />
+            <Skeleton className="h-4 w-1/2 mx-auto" />
+          </CardHeader>
           <CardContent className="p-4 md:p-6">
             <Skeleton className="h-48 w-48 rounded-full mx-auto" />
           </CardContent>
@@ -121,7 +126,7 @@ export default function ScenarioResultsPage() {
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur md:px-6">
         <div className="flex items-center gap-2">
           <Logo />
-          <h1 className="text-xl font-semibold text-foreground">RiskLens - Scenario Results</h1>
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">RiskLens - Scenario Results</h1>
         </div>
         <div className="ml-auto">
           <Button variant="outline" onClick={() => router.back()}>
@@ -130,12 +135,12 @@ export default function ScenarioResultsPage() {
           </Button>
         </div>
       </header>
-      <main className="flex-1 p-4 md:p-6">
+      <main className="flex-1 p-4 md:p-6 lg:p-8">
         {loading || !shockedData ? (
           <ResultsSkeleton />
         ) : (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
+            <div className="md:col-span-4 lg:col-span-3">
                <Card>
                     <CardHeader>
                         <CardTitle>Applied Shocks</CardTitle>
@@ -154,8 +159,11 @@ export default function ScenarioResultsPage() {
                 </Card>
             </div>
 
-            <div className="lg:col-span-6 space-y-6">
+            <div className="md:col-span-8 lg:col-span-6 space-y-6">
               <Card>
+                 <CardHeader className="text-center">
+                    <CardTitle>Post-Scenario Risk Index</CardTitle>
+                 </CardHeader>
                 <CardContent className="p-4 md:p-6">
                   <RiskIndexGauge value={averageRisk} />
                 </CardContent>
