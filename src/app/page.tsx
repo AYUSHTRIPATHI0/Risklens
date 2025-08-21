@@ -140,7 +140,6 @@ export default function Home() {
 
   const plainEnglishInsightsData = React.useMemo(() => {
     const defaultData = {
-        riskScoreChange: 0,
         volatilityImpact: 0,
         macroeconomicImpact: 0,
         sentimentImpact: 0,
@@ -148,14 +147,16 @@ export default function Home() {
     };
 
     if (!appData) {
-        return defaultData;
+        return { riskScoreChange: 0, ...defaultData };
     }
-
+    
     const driverImpacts = appData.driverBreakdown.reduce((acc, curr) => {
         const key = (curr.name.toLowerCase() + "Impact") as keyof typeof defaultData;
-        acc[key] = curr.value;
+        if (key in acc) {
+            acc[key] = curr.value;
+        }
         return acc;
-    }, {} as any);
+    }, {...defaultData});
 
     return {
         riskScoreChange: riskScoreChange,
