@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { type AppData, type HeatmapData } from "@/lib/mock-data";
+import { getFinancialData } from "@/services/financial-data";
 import { Logo } from "@/components/icons/logo";
 import { RiskIndexGauge } from "@/components/dashboard/risk-index-gauge";
 import { RiskHeatmap } from "@/components/dashboard/risk-heatmap";
@@ -70,26 +71,34 @@ function applyShocks(data: AppData, shocks: Record<string, number>): AppData {
 export default function ScenarioResultsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [shockedData, setShockedData] = React.useState<AppData | null>(null);
+  const [originalData, setOriginalData] = React.useState<AppData | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   const interestRate = parseFloat(searchParams.get("interestRate") || '0');
   const fx = parseFloat(searchParams.get("fx") || '0');
   const commodityPrice = parseFloat(searchParams.get("commodityPrice") || '0');
-  const appDataString = searchParams.get("appData");
 
   React.useEffect(() => {
-    if (appDataString) {
+    async function fetchData() {
       try {
-        const originalData = JSON.parse(appDataString);
-        const shocks = { interestRate, fx, commodityPrice };
-        const newAppData = applyShocks(originalData, shocks);
-        setShockedData(newAppData);
+        setLoading(true);
+        const data = await getFinancialData();
+        setOriginalData(data);
       } catch (error) {
-        console.error("Failed to parse appData or apply shocks", error);
-        // Handle error, maybe redirect back or show an error message
+        console.error("Failed to fetch financial data:", error);
+      } finally {
+        setLoading(false);
       }
     }
-  }, [appDataString, interestRate, fx, commodityPrice]);
+    fetchData();
+  }, []);
+
+  const shockedData = React.useMemo(() => {
+    if (!originalData) return null;
+    const shocks = { interestRate, fx, commodityPrice };
+    return applyShocks(originalData, shocks);
+  }, [originalData, interestRate, fx, commodityPrice]);
+
 
   const averageRisk = React.useMemo(() => {
     if (!shockedData) return 0;
@@ -122,7 +131,7 @@ export default function ScenarioResultsPage() {
         </div>
       </header>
       <main className="flex-1 p-4 md:p-6">
-        {!shockedData ? (
+        {loading || !shockedData ? (
           <ResultsSkeleton />
         ) : (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">

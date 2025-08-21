@@ -37,16 +37,6 @@ export function ScenarioExplorer({ appData }: ScenarioExplorerProps) {
     params.set("fx", shocks.fx.toString());
     params.set("commodityPrice", shocks.commodityPrice.toString());
     
-    // Pass the whole dataset to the results page to be re-calculated
-    // In a real app, you might just pass IDs and re-fetch, but this is fine for this demo.
-    try {
-      params.set("appData", JSON.stringify(appData));
-    } catch(e) {
-      console.error("Could not stringify app data", e);
-      // handle error, maybe show a toast
-      return;
-    }
-    
     router.push(`/scenario-results?${params.toString()}`);
   }
 
