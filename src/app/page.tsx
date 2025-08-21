@@ -14,18 +14,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 export default function Home() {
-  const [appData, setAppData] = React.useState<AppData>(initialData);
+  const [appData, setAppData] = React.useState<AppData | null>(null);
+
+  React.useEffect(() => {
+    setAppData(initialData);
+  }, []);
 
   const averageRisk = React.useMemo(() => {
+    if (!appData) return 0;
     const todayScores = appData.heatmapData.map(
       (d) => d.history[d.history.length - 1].score
     );
     return Math.round(
       todayScores.reduce((acc, score) => acc + score, 0) / todayScores.length
     );
-  }, [appData.heatmapData]);
+  }, [appData]);
 
   const riskScoreChange = React.useMemo(() => {
+    if (!appData) return 0;
     const yesterdayScores = appData.heatmapData.map(
         (d) => d.history[d.history.length - 2].score
       );
@@ -33,7 +39,15 @@ export default function Home() {
       yesterdayScores.reduce((acc, score) => acc + score, 0) / yesterdayScores.length
     );
     return averageRisk - yesterdayAverage;
-  }, [appData.heatmapData, averageRisk]);
+  }, [appData, averageRisk]);
+  
+  if (!appData) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center">
+        <p>Loading dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background font-body">
