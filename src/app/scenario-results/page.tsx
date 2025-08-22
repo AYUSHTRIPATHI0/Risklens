@@ -1,4 +1,3 @@
-"use client";
 
 "use client";
 
@@ -15,7 +14,7 @@ import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as React from "react";
 
-
+export const dynamic = "force-dynamic";
 
 function ResultsSkeleton() {
  return (
