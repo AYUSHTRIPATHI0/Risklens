@@ -1,6 +1,7 @@
 "use client";
 
-import React, { Suspense } from 'react';
+"use client";
+
 import { useSearchParams, useRouter } from "next/navigation";
 import { type AppData, type HeatmapData } from "@/lib/mock-data";
 import { getFinancialData } from "@/services/financial-data";
@@ -12,6 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import * as React from "react";
+
 
 
 function ResultsSkeleton() {
@@ -81,7 +84,7 @@ function applyShocks(data: AppData | null, shocks: Record<string, number>): AppD
   return { ...data, heatmapData: newHeatmapData }; // Return updated app data
 }
 
-function ScenarioResultsContent() {
+export default function ScenarioResultsPage() {
   // This component uses hooks that require a client environment
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -138,7 +141,6 @@ function ScenarioResultsContent() {
   // Render the main content based on loading state and data
   return (
     <div className="flex min-h-screen w-full flex-col bg-background font-body"> {/* Main container */}
-      {/* Header */}
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur md:px-6">
         <div className="flex items-center gap-2">
           <Logo /> {/* Logo component */}
@@ -152,14 +154,12 @@ function ScenarioResultsContent() {
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 p-4 md:p-6 lg:p-8"> {/* Main content padding */}
+      <main className="flex-1 p-4 md:p-6 lg:p-8">
         {loading || !shockedData ? ( // Show skeleton if loading or data is not available
           <ResultsSkeleton />
         ) : (
           // Grid layout for results
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
-            {/* Applied Shocks Card */}
             <div className="md:col-span-4 lg:col-span-3"> {/* Column span */}
                <Card> {/* Card component */}
                     <CardHeader>
@@ -180,7 +180,6 @@ function ScenarioResultsContent() {
                 </Card>
             </div>
 
-            {/* Risk Index Gauge and Heatmap */}
               <div className="md:col-span-8 lg:col-span-6 space-y-6">
                 <Card>
                    <CardHeader className="text-center">
@@ -196,12 +195,11 @@ function ScenarioResultsContent() {
               <div className="lg:col-span-3" />
             </div>
           )}
-        </main>
-         <footer className="px-4 md:px-6 py-4">
+      </main>
+      <footer className="px-4 md:px-6 py-4">
           <Separator />
           <p className="text-center text-sm text-muted-foreground pt-4">RiskLens &copy; {new Date().getFullYear()}. For demonstration purposes only.</p>
         </footer>
       </div>
-    </Suspense>
   );
 }
