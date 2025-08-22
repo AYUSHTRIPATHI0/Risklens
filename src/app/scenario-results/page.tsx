@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+
 function ResultsSkeleton() {
  return (
  <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
@@ -27,100 +28,159 @@ function ResultsSkeleton() {
  <Skeleton className="h-48 w-48 rounded-full mx-auto" />
  </CardContent>
  </Card>
- <Card className="h-[400px]">
+        <Card className="h-[400px]"> {/* Keep the approximate height for layout stability */}
  <CardHeader>
  <Skeleton className="h-6 w-1/2" />
  <Skeleton className="h-4 w-3/4" />
  </CardHeader>
  <CardContent>
  <div className="space-y-2">
-              {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)} {/* Render skeletal items */}
  </div>
  </CardContent>
  </Card>
  </div>
  <div className="lg:col-span-3" />
  </div>
- )
+  );
 }
 
-function applyShocks(data: AppData, shocks: Record<string, number>): AppData {
+function applyShocks(data: AppData | null, shocks: Record<string, number>): AppData | null {
+  if (!data) return null;
   const { interestRate = 0, fx = 0, commodityPrice = 0 } = shocks;
 
   const interestRateMultiplier = 1 + (interestRate / 100);
   const fxMultiplier = 1 + (fx / 100);
   const commodityMultiplier = 1 + (commodityPrice / 100);
 
-  const sectorMultipliers: Record<string, number> = {
-    Technology: 1,
-    Industrials: commodityMultiplier,
-    Financials: interestRateMultiplier,
-    Energy: commodityMultiplier,
-    Healthcare: 1,
-    'Consumer Staples': fxMultiplier,
+  // Define multipliers based on sector and shock type
+  const sectorMultipliers = (sector: string) => {
+    switch (sector) {
+      case 'Industrials':
+      case 'Energy':
+        return commodityMultiplier;
+      case 'Financials':
+        return interestRateMultiplier;
+      case 'Consumer Staples':
+        return fxMultiplier;
+      default:
+        return 1; // Default multiplier
+    }
   };
 
-  const newHeatmapData: HeatmapData[] = data.heatmapData.map(company => {
-    const sectorMultiplier = sectorMultipliers[company.sector] || 1;
+  const newHeatmapData: HeatmapData[] = data.heatmapData.map(company => { // Iterate through companies
+    const multiplier = sectorMultipliers(company.sector); // Get multiplier for the sector
     const newHistory = company.history.map(day => {
-      const newScore = Math.min(100, Math.max(0, day.score * sectorMultiplier));
+      // Apply multiplier and clamp score between 0 and 100
+      const newScore = Math.min(100, Math.max(0, day.score * multiplier));
       return { ...day, score: Math.round(newScore) };
     });
-    return { ...company, history: newHistory };
+    return { ...company, history: newHistory }; // Return updated company data
   });
 
-  return { ...data, heatmapData: newHeatmapData };
+  return { ...data, heatmapData: newHeatmapData }; // Return updated app data
 }
 
-export default function ScenarioResultsPage() {
+function ScenarioResultsContent() {
+  // This component uses hooks that require a client environment
   const searchParams = useSearchParams();
   const router = useRouter();
   const [originalData, setOriginalData] = React.useState<AppData | null>(null);
   const [loading, setLoading] = React.useState(true);
 
+  // Parse shock values from query parameters
   const interestRate = parseFloat(searchParams.get("interestRate") || '0');
   const fx = parseFloat(searchParams.get("fx") || '0');
   const commodityPrice = parseFloat(searchParams.get("commodityPrice") || '0');
 
-  return (
-    <Suspense fallback={<div>Loading scenario results...</div>}>
-      <div className="flex min-h-screen w-full flex-col bg-background font-body">
-        <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur md:px-6">
-          <div className="flex items-center gap-2">
-            <Logo />
-            <h1 className="text-lg md:text-xl font-semibold text-foreground">RiskLens - Scenario Results</h1>
-          </div>
-          <div className="ml-auto">
-            <Button variant="outline" onClick={() => router.back()}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </div>
-        </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">
-          {loading || !shockedData ? (
-            <ResultsSkeleton />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
-              <div className="md:col-span-4 lg:col-span-3">
-                 <Card>
-                      <CardHeader>
-                          <CardTitle>Applied Shocks</CardTitle>
-                          <CardDescription>The hypothetical scenario you created.</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                          {formattedShocks.length > 0 ? formattedShocks.map(shock => (
-                               <div key={shock.label} className="flex justify-between items-center text-sm">
-                                  <span className="text-muted-foreground">{shock.label}</span>
-                                  <span className="font-bold text-accent">
-                                      {shock.value > 0 ? "+" : ""}{shock.value}{shock.unit}
-                                  </span>
-                              </div>
-                          )) : <p className="text-sm text-muted-foreground">No shocks applied.</p>}
-                      </CardContent>
-                  </Card>
-              </div>
 
+  React.useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        // Fetch original data
+        const data = await getFinancialData();
+        setOriginalData(data);
+      } catch (error) {
+        console.error("Failed to fetch financial data:", error); // Log error
+      } finally {
+        setLoading(false); // Stop loading regardless of outcome
+      }
+    }
+    fetchData(); // Execute fetch
+  }, []); // Empty dependency array to run once on mount
+
+  // Apply shocks to the original data when data or shocks change
+  const shockedData = React.useMemo(() => {
+    if (!originalData) return null;
+    const shocks = { interestRate, fx, commodityPrice };
+    return applyShocks(originalData, shocks);
+  }, [originalData, interestRate, fx, commodityPrice]); // Re-calculate when dependencies change
+
+  // Calculate average risk from shocked data
+  const averageRisk = React.useMemo(() => {
+    if (!shockedData) return 0;
+    const todayScores = shockedData.heatmapData.map(
+      (d) => d.history[d.history.length - 1].score // Get the latest score
+    );
+    return Math.round(
+      todayScores.reduce((acc, score) => acc + score, 0) / todayScores.length // Calculate average
+    );
+  }, [shockedData]); // Re-calculate when shockedData changes
+
+  // Format shocks for display, filtering out zero values
+  const formattedShocks = [
+    {label: "Interest Rate", value: interestRate, unit: "%"},
+    {label: "FX", value: fx, unit: "%"},
+    {label: "Commodity Price", value: commodityPrice, unit: "%"}
+  ].filter(s => s.value !== 0); // Filter out shocks with 0 value
+
+  // Render the main content based on loading state and data
+  return (
+    <div className="flex min-h-screen w-full flex-col bg-background font-body"> {/* Main container */}
+      {/* Header */}
+      <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur md:px-6">
+        <div className="flex items-center gap-2">
+          <Logo /> {/* Logo component */}
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">RiskLens - Scenario Results</h1> {/* Page title */}
+        </div>
+        <div className="ml-auto">
+          <Button variant="outline" onClick={() => router.back()}> {/* Back button */}
+            <ArrowLeft className="mr-2 h-4 w-4" /> {/* Icon */}
+            Back to Dashboard
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 p-4 md:p-6 lg:p-8"> {/* Main content padding */}
+        {loading || !shockedData ? ( // Show skeleton if loading or data is not available
+          <ResultsSkeleton />
+        ) : (
+          // Grid layout for results
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
+            {/* Applied Shocks Card */}
+            <div className="md:col-span-4 lg:col-span-3"> {/* Column span */}
+               <Card> {/* Card component */}
+                    <CardHeader>
+                        <CardTitle>Applied Shocks</CardTitle>
+                        <CardDescription>The hypothetical scenario you created.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {/* List applied shocks */}
+                        {formattedShocks.length > 0 ? formattedShocks.map(shock => (
+                             <div key={shock.label} className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">{shock.label}</span>
+                                <span className="font-bold text-accent">
+                                    {shock.value > 0 ? "+" : ""}{shock.value}{shock.unit}
+                                </span>
+                            </div>
+                        )) : <p className="text-sm text-muted-foreground">No shocks applied.</p>} {/* Message if no shocks */}
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Risk Index Gauge and Heatmap */}
               <div className="md:col-span-8 lg:col-span-6 space-y-6">
                 <Card>
                    <CardHeader className="text-center">
