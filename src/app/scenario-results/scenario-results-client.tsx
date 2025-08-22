@@ -2,8 +2,6 @@
 // This page displays scenario results based on query parameters and applies hypothetical shocks to financial data.
 // It is a client component because it uses hooks like useSearchParams and useRouter.
 
-"use client";
-
 import * as React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { type AppData, type HeatmapData } from "@/lib/mock-data";
@@ -76,7 +74,7 @@ function applyShocks(data: AppData, shocks: Record<string, number>): AppData {
   return { ...data, heatmapData: newHeatmapData };
 }
 
-export default function ScenarioResultsPage() {
+export function ScenarioResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [originalData, setOriginalData] = React.useState<AppData | null>(null);

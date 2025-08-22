@@ -12,10 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-  generatePlainEnglishInsights,
   type GeneratePlainEnglishInsightsInput,
-} from "@/ai/flows/generate-plain-english-insights";
-
+ } from "@/ai/flows/generate-plain-english-insights";
+import { generatePlainEnglishInsightsAction } from "@/app/actions";
 interface PlainEnglishInsightsProps {
   riskData: {
     riskScoreChange: number;
@@ -36,7 +35,7 @@ export function PlainEnglishInsights({ riskData }: PlainEnglishInsightsProps) {
     setError(null);
     setInsights("");
     try {
-      const result = await generatePlainEnglishInsights(
+      const result = await generatePlainEnglishInsightsAction(
         riskData as GeneratePlainEnglishInsightsInput
       );
       setInsights(result.insights);
