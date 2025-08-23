@@ -6,7 +6,7 @@
  * - GeneratePlainEnglishInsightsInput - The input type for the generatePlainEnglishInsights function.
  * - GeneratePlainEnglishInsightsOutput - The return type for the generatePlainEnglishInsights function.
  */
-
+import 'server-only';
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
