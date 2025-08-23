@@ -3,7 +3,7 @@
 **Hackathon Project — IIT Kanpur CredTech Hackathon 2025**  
 [👉 Repository Link](https://github.com/AYUSHTRIPATHI0/Risklens.git)
 ## 📸 Screenshots / Demo  
-[Live Demo → risklenss.netlify.app/]([https://risklenss.netlify.app/])
+[Live Demo → risklenss.netlify.app](https://risklenss.netlify.app/)
 
 
 <p align="center">
