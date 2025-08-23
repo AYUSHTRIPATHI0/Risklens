@@ -1,6 +1,7 @@
 
 "use client";
 
+import * as React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { type AppData, type HeatmapData } from "@/lib/mock-data";
 import { getFinancialData } from "@/services/financial-data";
@@ -12,7 +13,6 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import * as React from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -84,13 +84,11 @@ function applyShocks(data: AppData | null, shocks: Record<string, number>): AppD
 }
 
 export default function ScenarioResultsPage() {
-  // This component uses hooks that require a client environment
   const searchParams = useSearchParams();
   const router = useRouter();
   const [originalData, setOriginalData] = React.useState<AppData | null>(null);
   const [loading, setLoading] = React.useState(true);
 
-  // Parse shock values from query parameters
   const interestRate = parseFloat(searchParams.get("interestRate") || '0');
   const fx = parseFloat(searchParams.get("fx") || '0');
   const commodityPrice = parseFloat(searchParams.get("commodityPrice") || '0');
@@ -100,73 +98,67 @@ export default function ScenarioResultsPage() {
     async function fetchData() {
       try {
         setLoading(true);
-        // Fetch original data
         const data = await getFinancialData();
         setOriginalData(data);
       } catch (error) {
-        console.error("Failed to fetch financial data:", error); // Log error
+        console.error("Failed to fetch financial data:", error); 
       } finally {
-        setLoading(false); // Stop loading regardless of outcome
+        setLoading(false); 
       }
     }
-    fetchData(); // Execute fetch
-  }, []); // Empty dependency array to run once on mount
+    fetchData(); 
+  }, []); 
 
-  // Apply shocks to the original data when data or shocks change
   const shockedData = React.useMemo(() => {
     if (!originalData) return null;
     const shocks = { interestRate, fx, commodityPrice };
     return applyShocks(originalData, shocks);
-  }, [originalData, interestRate, fx, commodityPrice]); // Re-calculate when dependencies change
+  }, [originalData, interestRate, fx, commodityPrice]); 
 
-  // Calculate average risk from shocked data
   const averageRisk = React.useMemo(() => {
     if (!shockedData) return 0;
     const todayScores = shockedData.heatmapData.map(
-      (d) => d.history[d.history.length - 1].score // Get the latest score
+      (d) => d.history[d.history.length - 1].score 
     );
     return Math.round(
-      todayScores.reduce((acc, score) => acc + score, 0) / todayScores.length // Calculate average
+      todayScores.reduce((acc, score) => acc + score, 0) / todayScores.length 
     );
-  }, [shockedData]); // Re-calculate when shockedData changes
+  }, [shockedData]); 
 
-  // Format shocks for display, filtering out zero values
   const formattedShocks = [
     {label: "Interest Rate", value: interestRate, unit: "%"},
     {label: "FX", value: fx, unit: "%"},
     {label: "Commodity Price", value: commodityPrice, unit: "%"}
-  ].filter(s => s.value !== 0); // Filter out shocks with 0 value
+  ].filter(s => s.value !== 0); 
 
-  // Render the main content based on loading state and data
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background font-body"> {/* Main container */}
+    <div className="flex min-h-screen w-full flex-col bg-background font-body"> 
       <header className="sticky top-0 z-50 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur md:px-6">
         <div className="flex items-center gap-2">
-          <Logo /> {/* Logo component */}
-          <h1 className="text-lg md:text-xl font-semibold text-foreground">RiskLens - Scenario Results</h1> {/* Page title */}
+          <Logo /> 
+          <h1 className="text-lg md:text-xl font-semibold text-foreground">RiskLens - Scenario Results</h1> 
         </div>
         <div className="ml-auto">
-          <Button variant="outline" onClick={() => router.back()}> {/* Back button */}
-            <ArrowLeft className="mr-2 h-4 w-4" /> {/* Icon */}
+          <Button variant="outline" onClick={() => router.back()}> 
+            <ArrowLeft className="mr-2 h-4 w-4" /> 
             Back to Dashboard
           </Button>
         </div>
       </header>
 
       <main className="flex-1 p-4 md:p-6 lg:p-8">
-        {loading || !shockedData ? ( // Show skeleton if loading or data is not available
+        {loading || !shockedData ? ( 
           <ResultsSkeleton />
         ) : (
-          // Grid layout for results
           <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
-            <div className="md:col-span-4 lg:col-span-3"> {/* Column span */}
-               <Card> {/* Card component */}
+            <div className="md:col-span-4 lg:col-span-3"> 
+               <Card> 
                     <CardHeader>
                         <CardTitle>Applied Shocks</CardTitle>
                         <CardDescription>The hypothetical scenario you created.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {/* List applied shocks */}
+                        
                         {formattedShocks.length > 0 ? formattedShocks.map(shock => (
                              <div key={shock.label} className="flex justify-between items-center text-sm">
                                 <span className="text-muted-foreground">{shock.label}</span>
@@ -174,7 +166,7 @@ export default function ScenarioResultsPage() {
                                     {shock.value > 0 ? "+" : ""}{shock.value}{shock.unit}
                                 </span>
                             </div>
-                        )) : <p className="text-sm text-muted-foreground">No shocks applied.</p>} {/* Message if no shocks */}
+                        )) : <p className="text-sm text-muted-foreground">No shocks applied.</p>} 
                     </CardContent>
                 </Card>
             </div>
