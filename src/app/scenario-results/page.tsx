@@ -13,8 +13,8 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from "react";
 
-export const dynamic = "force-dynamic";
 
 function ResultsSkeleton() {
  return (
@@ -83,7 +83,7 @@ function applyShocks(data: AppData | null, shocks: Record<string, number>): AppD
   return { ...data, heatmapData: newHeatmapData }; // Return updated app data
 }
 
-export default function ScenarioResultsPage() {
+function ScenarioResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [originalData, setOriginalData] = React.useState<AppData | null>(null);
@@ -150,7 +150,7 @@ export default function ScenarioResultsPage() {
         {loading || !shockedData ? ( 
           <ResultsSkeleton />
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-12 md:gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
             <div className="md:col-span-4 lg:col-span-3"> 
                <Card> 
                     <CardHeader>
@@ -192,5 +192,14 @@ export default function ScenarioResultsPage() {
           <p className="text-center text-sm text-muted-foreground pt-4">RiskLens &copy; {new Date().getFullYear()}. For demonstration purposes only.</p>
         </footer>
       </div>
+  );
+}
+
+
+export default function ScenarioResultsPage() {
+  return (
+    <Suspense fallback={<ResultsSkeleton />}>
+      <ScenarioResultsContent />
+    </Suspense>
   );
 }
